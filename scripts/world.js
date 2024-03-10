@@ -32,8 +32,10 @@ export class World extends THREE.Group {
     }
 
     generate() {
+        const rng = new RNG(this.params.seed);
         this.initialiseTerrain();
-        this.generateTerrain();
+        this.generateResources(rng);
+        this.generateTerrain(rng);
         this.generateMeshes();
     }
 
@@ -55,12 +57,28 @@ export class World extends THREE.Group {
         }
     }
 
+    /**
+     * Generates the world resources
+     */
+    generateResources(rng) {
+        const simplexNoise = new SimplexNoise(rng);
+        for(let x = 0; x < this.size.width; x++) {
+            for(let y = 0; y < this.size.height; y++) {
+                for(let z = 0; z < this.size.width; z++) {
+                    const value = simplexNoise.noise3d(x / blocks.stone.scale.x, y / blocks.stone.scale.y, z / blocks.stone.scale.z);
+                    if(value > blocks.stone.scarcity){
+                        this.setBlockId(x, y, z, blocks.stone.id);
+                    }
+                }
+            }
+        }
+    }
+
 
     /**
      * Generates the world terrain data
     */
-    generateTerrain() {
-        const rng = new RNG(this.params.seed);
+    generateTerrain(rng) {
         const simplexNoise = new SimplexNoise(rng);
 
         for (let x = 0; x < this.size.width; x++) {
@@ -82,11 +100,11 @@ export class World extends THREE.Group {
                 for (let y = 0; y <= this.size.height; y++) {
 
                     // Determine the block type based on the height
-                    if (y < height) {
+                    if (y < height && this.getBlock(x, y, z).id === blocks.empty.id){
                         this.setBlockId(x, y, z, blocks.dirt.id)
                     } else if (y === height) {
                         this.setBlockId(x, y, z, blocks.grass.id)
-                    } else {
+                    } else if (y > height){
                         this.setBlockId(x, y, z, blocks.empty.id)
                     }
                 }
