@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import { RNG } from './rng';
+import { blocks } from './blocks';
 
 const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshLambertMaterial({ color: 0x00ddae });
+const material = new THREE.MeshLambertMaterial();
 
 export class World extends THREE.Group {
     /**
@@ -46,7 +47,7 @@ export class World extends THREE.Group {
             for (let y = 0; y < this.size.height; y++) {
                 const row = [];
                 for (let z = 0; z < this.size.width; z++) {
-                    row.push({ id: 0, instanceId: null });
+                    row.push({ id: blocks.empty.id, instanceId: null });
                 }
                 slice.push(row);
             }
@@ -61,7 +62,7 @@ export class World extends THREE.Group {
     generateTerrain() {
         const rng = new RNG(this.params.seed);
         const simplexNoise = new SimplexNoise(rng);
-        
+
         for (let x = 0; x < this.size.width; x++) {
             for (let z = 0; z < this.size.width; z++) {
 
@@ -78,8 +79,16 @@ export class World extends THREE.Group {
                 height = Math.max(0, Math.min(height, this.size.height - 1));
 
                 // Fill the terrain up to the height
-                for(let y = 0; y <= height; y++){
-                    this.setBlockId(x, y, z, 1);
+                for(let y = 0; y <= this.size.height; y++){
+
+                    // Determine the block type based on the height
+                    if(y< height){
+                        this.setBlockId(x, y, z, blocks.dirt.id)
+                    }else if(y === height){
+                        this.setBlockId(x, y, z, blocks.grass.id)
+                    }else{
+                        this.setBlockId(x, y, z, blocks.empty.id)
+                    }
                 }
             }
         }
@@ -100,11 +109,13 @@ export class World extends THREE.Group {
             for (let y = 0; y < this.size.height; y++) {
                 for (let z = 0; z < this.size.width; z++) {
                     const blockId = this.getBlock(x, y, z).id;
+                    const blockType = Object.values(blocks).find(block => block.id === blockId);
                     const instanceId = mesh.count;
 
                     if (blockId !== 0) {
                         matrix.setPosition(x + 0.5, y + 0.5, z + 0.5);
                         mesh.setMatrixAt(instanceId, matrix);
+                        mesh.setColorAt(instanceId, new THREE.Color(blockType.color));
                         this.setBlockInstanceId(x, y, z, instanceId);
                         mesh.count++;
                     }
