@@ -42,6 +42,7 @@ export class Physics {
     }
 
     player.updateBoundsHelper();
+    player.update();
   }
 
   /**
@@ -91,7 +92,7 @@ export class Physics {
       }
     }
 
-    console.log(`Broadphase Candidates: ${candidates.length}`);
+    // console.log(`Broadphase Candidates: ${candidates.length}`);
 
     return candidates;
   }

@@ -17,6 +17,7 @@ export class Player {
     input = new THREE.Vector3();
 
     constructor(scene) {
+        this.keyState = {};
         this.position.set(32, 10, 32);
         this.cameraHelper.visible = false;
         scene.add(this.camera);
@@ -86,72 +87,50 @@ export class Player {
         this.velocity.add(dv);
     }
 
-    /**
-     * Event handler for 'keyup' event
-     * @param {KeyboardEvent} event 
-     */
+
+
+    onKeyDown(event) {
+        this.keyState[event.code] = true;
+    }
+
     onKeyUp(event) {
+        this.keyState[event.code] = false;
+
         switch (event.code) {
-            case 'Escape':
-                if (event.repeat) break;
+            case 'F2':
                 if (this.controls.isLocked) {
                     console.log('unlocking controls');
                     this.controls.unlock();
+                    document.getElementById('info-how-to').style.display = 'block';
                 } else {
                     console.log('locking controls');
-                    this.controls.connect();
                     this.controls.lock();
+                    document.getElementById('info-how-to').style.display = 'none';
 
                 }
-                break;
-            case 'KeyW':
-                this.input.z = 0;
-                break;
-            case 'KeyA':
-                this.input.x = 0;
-                break;
-            case 'KeyS':
-                this.input.z = 0;
-                break;
-            case 'KeyD':
-                this.input.x = 0;
                 break;
         }
     }
 
-    
+    update() {
+        if (this.keyState['KeyW']) this.input.z = this.maxSpeed;
+        else if (this.keyState['KeyS']) this.input.z = -this.maxSpeed;
+        else this.input.z = 0;
 
-    /**
-     * Event handler for 'keyup' event
-     * @param {KeyboardEvent} event 
-     */
-    onKeyDown(event) {
-        switch (event.code) {
-            case 'KeyW':
-                this.input.z = this.maxSpeed;
-                break;
-            case 'KeyA':
-                this.input.x = -this.maxSpeed;
-                break;
-            case 'KeyS':
-                this.input.z = -this.maxSpeed;
-                break;
-            case 'KeyD':
-                this.input.x = this.maxSpeed;
-                break;
-            case 'KeyR':
-                if (this.repeat) break;
-                this.position.set(32, 10, 32);
-                this.velocity.set(0, 0, 0);
-                break;
-            case 'Space':
-                if (this.onGround) {
-                    this.velocity.y += this.jumpSpeed;
-                }
-                break;
+        if (this.keyState['KeyA']) this.input.x = -this.maxSpeed;
+        else if (this.keyState['KeyD']) this.input.x = this.maxSpeed;
+        else this.input.x = 0;
+
+        if (this.keyState['KeyR'] && !this.repeat) {
+            this.position.set(32, 10, 32);
+            this.velocity.set(0, 0, 0);
+        }
+
+        if (this.keyState['Space'] && this.onGround) {
+            this.velocity.y += this.jumpSpeed;
         }
     }
-    
+
 
     /**
      * Returns player position in a readable string form
