@@ -2,18 +2,32 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 export class Player {
+    height = 1.75;
+    radius = 0.5;
+    maxSpeed = 5;
+    jumpSpeed = 10;
+    onGround = false
+
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
     cameraHelper = new THREE.CameraHelper(this.camera);
     controls = new PointerLockControls(this.camera, document.body);
 
-    maxSpeed = 10;
     velocity = new THREE.Vector3();
+    _worldVelocity = new THREE.Vector3()
     input = new THREE.Vector3();
 
     constructor(scene) {
         this.position.set(32, 10, 32);
+        this.cameraHelper.visible = false;
         scene.add(this.camera);
         scene.add(this.cameraHelper);
+
+        // Wireframe mesh visualizing the player's bounding cylinder
+        this.boundsHelper = new THREE.Mesh(
+            new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
+            new THREE.MeshBasicMaterial({ wireframe: true })
+        );
+        scene.add(this.boundsHelper);
 
         // Add event listeners for keyboard/mouse events
         document.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -24,15 +38,24 @@ export class Player {
      * Updates the state of the player
      * @param {Number} dt 
      */
-    update(dt) {
+    applyInputs(dt) {
         if (this.controls.isLocked) {
             this.velocity.x = this.input.x;
             this.velocity.z = this.input.z;
             this.controls.moveRight(this.velocity.x * dt);
             this.controls.moveForward(this.velocity.z * dt);
+            this.position.y += this.velocity.y * dt;
         }
 
         document.getElementById('info-player-position').innerHTML = this.toString();
+    }
+
+    /**
+   * Updates the position of the player's bounding cylinder helper
+   */
+    updateBoundsHelper() {
+        this.boundsHelper.position.copy(this.camera.position);
+        this.boundsHelper.position.y -= this.height / 2;
     }
 
     /**
@@ -41,6 +64,25 @@ export class Player {
      */
     get position() {
         return this.camera.position;
+    }
+
+    /**
+  * Returns the velocity of the player in world coordinates
+  * @returns {THREE.Vector3}
+  */
+    get worldVelocity() {
+        this._worldVelocity.copy(this.velocity);
+        this._worldVelocity.applyEuler(new THREE.Euler(0, this.camera.rotation.y, 0));
+        return this._worldVelocity;
+    }
+
+    /**
+     * Applies a change in velocity 'dv' that is specified in the world frame
+     * @param {THREE.Vector3} dv 
+     */
+    applyWorldDeltaVelocity(dv) {
+        dv.applyEuler(new THREE.Euler(0, -this.camera.rotation.y, 0));
+        this.velocity.add(dv);
     }
 
     /**
@@ -58,7 +100,7 @@ export class Player {
                     console.log('locking controls');
                     this.controls.connect();
                     this.controls.lock();
-                    
+
                 }
                 break;
             case 'KeyW':
@@ -72,6 +114,11 @@ export class Player {
                 break;
             case 'KeyD':
                 this.input.x = 0;
+                break;
+            case 'Space':
+                if (this.onGround) {
+                    this.velocity.y += this.jumpSpeed;
+                }
                 break;
         }
     }

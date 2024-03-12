@@ -1,13 +1,19 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { blocks, resources } from './blocks';
 
-export function createUI(world, player) {
+export function createUI(world, player, physics) {
     const gui = new GUI();
     
     const playerFolder = gui.addFolder('Player');
     playerFolder.add(player, 'maxSpeed', 1, 20).name('Max Speed');
+    playerFolder.add(player, 'jumpSpeed', 1, 10).name('Jump Speed');
+  playerFolder.add(player.boundsHelper, 'visible').name('Show Player Bounds');
     playerFolder.add(player.cameraHelper, 'visible').name('Show Camera Helper');
 
+    
+  const physicsFolder = gui.addFolder('Physics');
+  physicsFolder.add(physics.helpers, 'visible').name('Visualize Collisions');
+  physicsFolder.add(physics, 'simulationRate', 10, 1000).name('Sim Rate');
 
     
     const terrainFolder = gui.addFolder('Terrain');
