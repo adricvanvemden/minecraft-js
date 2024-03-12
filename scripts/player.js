@@ -24,7 +24,7 @@ export class Player {
 
         // Wireframe mesh visualizing the player's bounding cylinder
         this.boundsHelper = new THREE.Mesh(
-            new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
+            new THREE.CylinderGeometry(this.radius, this.radius, this.height, 32),
             new THREE.MeshBasicMaterial({ wireframe: true })
         );
         scene.add(this.boundsHelper);
@@ -45,6 +45,7 @@ export class Player {
             this.controls.moveRight(this.velocity.x * dt);
             this.controls.moveForward(this.velocity.z * dt);
             this.position.y += this.velocity.y * dt;
+
         }
 
         document.getElementById('info-player-position').innerHTML = this.toString();
@@ -115,13 +116,10 @@ export class Player {
             case 'KeyD':
                 this.input.x = 0;
                 break;
-            case 'Space':
-                if (this.onGround) {
-                    this.velocity.y += this.jumpSpeed;
-                }
-                break;
         }
     }
+
+    
 
     /**
      * Event handler for 'keyup' event
@@ -146,8 +144,14 @@ export class Player {
                 this.position.set(32, 10, 32);
                 this.velocity.set(0, 0, 0);
                 break;
+            case 'Space':
+                if (this.onGround) {
+                    this.velocity.y += this.jumpSpeed;
+                }
+                break;
         }
     }
+    
 
     /**
      * Returns player position in a readable string form
