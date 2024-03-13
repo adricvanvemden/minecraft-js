@@ -113,12 +113,18 @@ export class Player {
     }
 
     update() {
-        if (this.keyState['KeyW']) this.input.z = this.maxSpeed;
-        else if (this.keyState['KeyS']) this.input.z = -this.maxSpeed;
+        let speed = this.maxSpeed;
+
+        if (this.keyState['ShiftLeft'] || this.keyState['ShiftRight']) {
+            speed *= 2;
+        }
+
+        if (this.keyState['KeyW']) this.input.z = speed;
+        else if (this.keyState['KeyS']) this.input.z = -speed;
         else this.input.z = 0;
 
-        if (this.keyState['KeyA']) this.input.x = -this.maxSpeed;
-        else if (this.keyState['KeyD']) this.input.x = this.maxSpeed;
+        if (this.keyState['KeyA']) this.input.x = -speed;
+        else if (this.keyState['KeyD']) this.input.x = speed;
         else this.input.x = 0;
 
         if (this.keyState['KeyR'] && !this.repeat) {
