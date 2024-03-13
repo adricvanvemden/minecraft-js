@@ -56,7 +56,7 @@ export class Player {
    * Updates the position of the player's bounding cylinder helper
    */
     updateBoundsHelper() {
-        this.boundsHelper.position.copy(this.camera.position);
+        this.boundsHelper.position.copy(this.position);
         this.boundsHelper.position.y -= this.height / 2;
     }
 

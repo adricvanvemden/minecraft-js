@@ -22,7 +22,7 @@ document.body.appendChild(renderer.domElement);
 // Camera setup
 const fov = 75;
 const orbitcamera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight);
-orbitcamera.position.set(-32, 16, -32);
+orbitcamera.position.set(32, 16, 32);
 
 const controls = new OrbitControls(orbitcamera, renderer.domElement);
 controls.target.set(16, 0, 16);
