@@ -16,6 +16,7 @@ export class WorldChunk extends THREE.Group {
 
   constructor(size, params) {
     super();
+    this.loaded = false;
     this.size = size;
     this.params = params;
   }
@@ -26,6 +27,7 @@ export class WorldChunk extends THREE.Group {
     this.generateResources(rng);
     this.generateTerrain(rng);
     this.generateMeshes();
+    this.loaded = true;
   }
 
   /**

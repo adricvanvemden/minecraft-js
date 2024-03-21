@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { WorldChunk } from './worldChunk';
 
 export class World extends THREE.Group {
+  asyncLoading = true;
+
   // Distance from the player at which chunks are loaded
   drawDistance = 2;
 
@@ -106,7 +108,12 @@ export class World extends THREE.Group {
   generateChunk(x, z) {
     const chunk = new WorldChunk(this.chunkSize, this.params);
     chunk.position.set(x * this.chunkSize.width, 0, z * this.chunkSize.width);
-    chunk.generate();
+
+    if (this.asyncLoading) {
+      requestIdleCallback(chunk.generate.bind(chunk), { timeout: 1000 });
+    } else {
+      chunk.generate();
+    }
     chunk.userData = { x, z };
     this.add(chunk);
   }
@@ -121,7 +128,7 @@ export class World extends THREE.Group {
   getBlock(x, y, z) {
     const { chunk, block } = this.worldToChunkCoords(x, y, z);
     const chunkObj = this.getChunk(chunk.x, chunk.z);
-    return chunkObj ? chunkObj.getBlock(block.x, block.y, block.z) : null;
+    return chunkObj && chunkObj.loaded ? chunkObj.getBlock(block.x, block.y, block.z) : null;
   }
 
   /**

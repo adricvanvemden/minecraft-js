@@ -15,6 +15,7 @@ export function createUI(world, player, physics) {
   physicsFolder.add(physics, 'simulationRate', 10, 1000).name('Sim Rate');
 
   const terrainFolder = gui.addFolder('Terrain');
+  terrainFolder.add(world, 'asyncLoading').name('Async Loading');
   terrainFolder.add(world, 'drawDistance', 1, 12, 1).name('Draw Distance');
   terrainFolder.add(world.params, 'seed', 1, 10000).name('Seed');
   terrainFolder.add(world.params.terrain, 'scale', 10, 100).name('Scale');
