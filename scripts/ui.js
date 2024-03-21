@@ -1,8 +1,12 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { blocks, resources } from './blocks';
 
-export function createUI(world, player, physics) {
+export function createUI(scene, world, player, physics) {
   const gui = new GUI();
+
+  const sceneFolder = gui.addFolder('Scene');
+  sceneFolder.add(scene.fog, 'near', 1, 100).name('Fog Near');
+  sceneFolder.add(scene.fog, 'far', 1, 100).name('Fog Far');
 
   const playerFolder = gui.addFolder('Player');
   playerFolder.add(player, 'maxSpeed', 1, 20).name('Max Speed');
