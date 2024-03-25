@@ -93,7 +93,7 @@ export class WorldChunk extends THREE.Group {
         const scaledNoise = this.params.terrain.offset + this.params.terrain.magnitude * value;
 
         // Compute the height of the terrain at (x, z) based on the scaled noise
-        let height = Math.floor(this.size.height * scaledNoise);
+        let height = Math.floor(scaledNoise);
 
         // Clamp the height to the world's height
         height = Math.max(0, Math.min(height, this.size.height - 1));
@@ -101,10 +101,13 @@ export class WorldChunk extends THREE.Group {
         // Fill the terrain up to the height
         for (let y = 0; y <= this.size.height; y++) {
           // Determine the block type based on the height
-          if (y < height && this.getBlock(x, y, z).id === blocks.empty.id) {
-            this.setBlockId(x, y, z, blocks.dirt.id);
-          } else if (y === height) {
+          if (y <= this.params.terrain.waterHeight && y <= height) {
+            this.setBlockId(x, y, z, blocks.sand.id);
+        } else if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
+          }else if (y < height && this.getBlock(x, y, z).id === blocks.empty.id) {
+            this.setBlockId(x, y, z, blocks.dirt.id);
+
           } else if (y > height) {
             this.setBlockId(x, y, z, blocks.empty.id);
           }
@@ -132,17 +135,15 @@ export class WorldChunk extends THREE.Group {
 
   /**
    * Populate the world with trees
-   * @param {RNG} rng 
+   * @param {RNG} rng
    */
   generateTrees(rng) {
     const simplex = new SimplexNoise(rng);
     const canopySize = this.params.trees.canopy.size.max;
     for (let baseX = canopySize; baseX < this.size.width - canopySize; baseX++) {
       for (let baseZ = canopySize; baseZ < this.size.width - canopySize; baseZ++) {
-        const n = simplex.noise(
-          this.position.x + baseX,
-          this.position.z + baseZ) * 0.5 + 0.5;
-        if (n < (1 - this.params.trees.frequency)) continue;
+        const n = simplex.noise(this.position.x + baseX, this.position.z + baseZ) * 0.5 + 0.5;
+        if (n < 1 - this.params.trees.frequency) continue;
 
         // Find the grass tile
         for (let y = this.size.height - 1; y--; y >= 0) {
@@ -186,30 +187,35 @@ export class WorldChunk extends THREE.Group {
     }
   }
 
-    /**
+  /**
    * Creates happy little clouds
-   * @param {RNG} rng 
+   * @param {RNG} rng
    */
-    generateClouds(rng) {
-        const simplex = new SimplexNoise(rng);
-        for (let x = 0; x < this.size.width; x++) {
-          for (let z = 0; z < this.size.width; z++) {
-            const value = simplex.noise(
-              (this.position.x + x) / this.params.clouds.scale,
-              (this.position.z + z) / this.params.clouds.scale) * 0.5 + 0.5;
-    
-            if (value < this.params.clouds.density) {
-              this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
-            }
-          }
+  generateClouds(rng) {
+    const simplex = new SimplexNoise(rng);
+    for (let x = 0; x < this.size.width; x++) {
+      for (let z = 0; z < this.size.width; z++) {
+        const value =
+          simplex.noise(
+            (this.position.x + x) / this.params.clouds.scale,
+            (this.position.z + z) / this.params.clouds.scale
+          ) *
+            0.5 +
+          0.5;
+
+        if (value < this.params.clouds.density) {
+          this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
         }
       }
+    }
+  }
 
   /**
    * Generates the 3D representation of the world
    */
   generateMeshes() {
     this.clear();
+    this.generateWater();
 
     const maxCount = this.size.width * this.size.height * this.size.width;
 
@@ -248,6 +254,25 @@ export class WorldChunk extends THREE.Group {
       }
     }
     this.add(...Object.values(meshes));
+  }
+
+  /**
+   * Creates a plane of water
+   */
+  generateWater() {
+    const waterMaterial = new THREE.MeshLambertMaterial({
+      color: 0x9090e0,
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+    });
+    const waterMesh = new THREE.Mesh(new THREE.PlaneGeometry(), waterMaterial);
+    waterMesh.rotateX(-Math.PI / 2);
+    waterMesh.position.set(this.size.width / 2, this.params.terrain.waterHeight + 0.4, this.size.width / 2);
+    waterMesh.scale.set(this.size.width, this.size.width, 1);
+    waterMesh.layers.set(1);
+    
+    this.add(waterMesh);
   }
 
   /**

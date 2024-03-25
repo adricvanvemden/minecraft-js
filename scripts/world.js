@@ -8,14 +8,15 @@ export class World extends THREE.Group {
   // Distance from the player at which chunks are loaded
   drawDistance = 2;
 
-  chunkSize = { width: 16, height: 16 };
+  chunkSize = { width: 24, height: 32 };
 
   params = {
     seed: 0,
     terrain: {
       scale: 30,
-      magnitude: 0.5,
-      offset: 0.2,
+      magnitude: 10,
+      offset: 4,
+      waterHeight: 5,
     },
     trees: {
       trunk: {

@@ -96,14 +96,8 @@ export const blocks = {
     color: 0x807020,
     material: new THREE.MeshLambertMaterial({ map: textures.sand }), // all sides
   },
-  water: {
-    id: 9,
-    name: 'Water',
-    color: 0x0000ff,
-    material: new THREE.MeshLambertMaterial({ color: 0x0000ff }),
-  },
   cloud: {
-    id: 10,
+    id: 9,
     name: 'Cloud',
     color: 0xffffff,
     material: new THREE.MeshBasicMaterial({ color: 0xf0f0f0 }),
