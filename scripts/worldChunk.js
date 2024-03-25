@@ -27,6 +27,7 @@ export class WorldChunk extends THREE.Group {
     this.initialiseTerrain();
     this.generateResources(rng);
     this.generateTerrain(rng);
+    this.generateTrees(rng);
     this.loadPlayerChanges();
     this.generateMeshes();
     this.loaded = true;
@@ -122,6 +123,62 @@ export class WorldChunk extends THREE.Group {
           if (this.dataStore.contains(this.position.x, this.position.z, x, y, z)) {
             const blockId = this.dataStore.get(this.position.x, this.position.z, x, y, z);
             this.setBlockId(x, y, z, blockId);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Populate the world with trees
+   * @param {RNG} rng 
+   */
+  generateTrees(rng) {
+    const simplex = new SimplexNoise(rng);
+    const canopySize = this.params.trees.canopy.size.max;
+    for (let baseX = canopySize; baseX < this.size.width - canopySize; baseX++) {
+      for (let baseZ = canopySize; baseZ < this.size.width - canopySize; baseZ++) {
+        const n = simplex.noise(
+          this.position.x + baseX,
+          this.position.z + baseZ) * 0.5 + 0.5;
+        if (n < (1 - this.params.trees.frequency)) continue;
+
+        // Find the grass tile
+        for (let y = this.size.height - 1; y--; y >= 0) {
+          if (this.getBlock(baseX, y, baseZ).id !== blocks.grass.id) continue;
+
+          // We found grass, move one tile up
+          const baseY = y + 1;
+
+          // Create the trunk. First, determine the trunk height
+          const minH = this.params.trees.trunk.height.min;
+          const maxH = this.params.trees.trunk.height.max;
+          const trunkHeight = Math.round(rng.random() * (maxH - minH)) + minH;
+          const topY = baseY + trunkHeight;
+
+          // Fill in the blocks for the trunk
+          for (let y = baseY; y <= topY; y++) {
+            this.setBlockId(baseX, y, baseZ, blocks.tree.id);
+          }
+
+          // Create the leaves. First, determine the canopy radius R
+          const minR = this.params.trees.canopy.size.min;
+          const maxR = this.params.trees.canopy.size.max;
+          const R = Math.round(rng.random() * (maxR - minR)) + minR;
+
+          for (let x = -R; x <= R; x++) {
+            for (let y = -R; y <= R; y++) {
+              for (let z = -R; z <= R; z++) {
+                // Don't creates leaves outside the canopy radius
+                if (x * x + y * y + z * z > R * R) continue;
+                // Don't overwrite existing blocks
+                if (this.getBlock(baseX + x, topY + y, baseZ + z)?.id !== blocks.empty.id) continue;
+                // Add some randomness to break up the leaves a bit
+                if (rng.random() > this.params.trees.canopy.density) {
+                  this.setBlockId(baseX + x, topY + y, baseZ + z, blocks.leaves.id);
+                }
+              }
+            }
           }
         }
       }

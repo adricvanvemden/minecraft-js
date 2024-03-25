@@ -17,6 +17,22 @@ export class World extends THREE.Group {
       magnitude: 0.5,
       offset: 0.2,
     },
+    trees: {
+      trunk: {
+        height: {
+          min: 2,
+          max: 4,
+        },
+      },
+      canopy: {
+        size: {
+          min: 2,
+          max: 3,
+        },
+        density: 0.5, // between 0 and 1
+      },
+      frequency: 0.05, // between 0 and 1
+    },
   };
 
   dataStore = new DataStore();
