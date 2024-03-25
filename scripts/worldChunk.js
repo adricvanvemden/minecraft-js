@@ -14,11 +14,12 @@ export class WorldChunk extends THREE.Group {
    */
   data = [];
 
-  constructor(size, params) {
+  constructor(size, params, dataStore) {
     super();
     this.loaded = false;
     this.size = size;
     this.params = params;
+    this.dataStore = dataStore;
   }
 
   generate() {
@@ -26,6 +27,7 @@ export class WorldChunk extends THREE.Group {
     this.initialiseTerrain();
     this.generateResources(rng);
     this.generateTerrain(rng);
+    this.loadPlayerChanges();
     this.generateMeshes();
     this.loaded = true;
   }
@@ -110,6 +112,23 @@ export class WorldChunk extends THREE.Group {
   }
 
   /**
+   * Pulls any changes from the data store and applies them to the data model
+   */
+  loadPlayerChanges() {
+    for (let x = 0; x < this.size.width; x++) {
+      for (let y = 0; y < this.size.height; y++) {
+        for (let z = 0; z < this.size.width; z++) {
+          // Overwrite with value in data store if it exists
+          if (this.dataStore.contains(this.position.x, this.position.z, x, y, z)) {
+            const blockId = this.dataStore.get(this.position.x, this.position.z, x, y, z);
+            this.setBlockId(x, y, z, blockId);
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Generates the 3D representation of the world
    */
   generateMeshes() {
@@ -170,6 +189,23 @@ export class WorldChunk extends THREE.Group {
   }
 
   /**
+   * Adds a new block at (x,y,z) of type `blockId`
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} blockId
+   */
+  addBlock(x, y, z, blockId) {
+    // Safety check that we aren't adding a block for one that
+    // already has an instance
+    if (this.getBlock(x, y, z).id === blocks.empty.id) {
+      this.setBlockId(x, y, z, blockId);
+      this.addBlockInstance(x, y, z);
+      this.dataStore.set(this.position.x, this.position.z, x, y, z, blockId);
+    }
+  }
+
+  /**
    * Removes the block at the given coordinates
    * @param {number} x
    * @param {number} y
@@ -180,6 +216,33 @@ export class WorldChunk extends THREE.Group {
 
     if (block && block.id !== blocks.empty.id) {
       this.deleteBlockInstance(x, y, z);
+      this.setBlockId(x, y, z, blocks.empty.id);
+    }
+  }
+
+  /**
+   * Create a new instance for the block at (x,y,z)
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  addBlockInstance(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    // If this block is non-empty and does not already have an instance, create a new one
+    if (block && block.id !== blocks.empty.id && block.instanceId === null) {
+      // Append a new instance to the end of our InstancedMesh
+      const mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id);
+      const instanceId = mesh.count++;
+      this.setBlockInstanceId(x, y, z, instanceId);
+
+      // Update the appropriate instanced mesh
+      // re-compute the bounding sphere so raycasting works
+      const matrix = new THREE.Matrix4();
+      matrix.setPosition(x, y, z);
+      mesh.setMatrixAt(instanceId, matrix);
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
     }
   }
 
@@ -215,15 +278,12 @@ export class WorldChunk extends THREE.Group {
 
     // Mark the instance matrix as needing update
     // and update the bounding sphere for raycasting
-    mesh.instanceMatrix.needsUpdate = true
+    mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
 
     // Clear the block data
     this.setBlockInstanceId(x, y, z, null);
-    this.setBlockId(x, y, z, blocks.empty.id);
-
   }
-
 
   /**
    * Sets the block id for the block at (x, y, z)

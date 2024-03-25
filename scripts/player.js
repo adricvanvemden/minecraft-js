@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { blocks } from './blocks';
 
 const CENTER_SCREEN = new THREE.Vector2();
 export class Player {
@@ -19,10 +20,11 @@ export class Player {
 
   raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 3);
   selectedCoords = null;
+  activeBlockid = blocks.empty.id;
 
   constructor(scene) {
     this.keyState = {};
-    this.position.set(32, 10, 32);
+    this.position.set(32, 32, 32);
     this.cameraHelper.visible = false;
     scene.add(this.camera);
     scene.add(this.cameraHelper);
@@ -38,6 +40,7 @@ export class Player {
     document.addEventListener('keyup', this.onKeyUp.bind(this));
     document.addEventListener('keydown', this.onKeyDown.bind(this));
 
+    // Helper used to highlight the currently active block
     const selectionMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.3 });
     const selectionGeometry = new THREE.BoxGeometry(1.001, 1.001, 1.001);
     this.selectionHelper = new THREE.Mesh(selectionGeometry, selectionMaterial);
@@ -86,15 +89,18 @@ export class Player {
     return this._worldVelocity;
   }
 
-  //   update(world) {
-  //     console.log('update player');
-  //     this.updateRaycaster(world);
-  //   }
+  /**
+   * Updates the state of the player
+   * @param {World} world
+   */
+  updatePlayer(world) {
+    this.updateBoundsHelper();
+    this.updateRaycaster(world);
+  }
 
   /**
    * Updates the raycaster used for block selection
    *  @param {World} world
-   *
    */
   updateRaycaster(world) {
     this.raycaster.setFromCamera(CENTER_SCREEN, this.camera);
@@ -113,6 +119,12 @@ export class Player {
       // Extract the block position from the matrix and set it as the selected coords
       this.selectedCoords = chunck.position.clone();
       this.selectedCoords.applyMatrix4(blockMatrix);
+
+      if (this.activeBlockId !== blocks.empty.id) {
+        // If we are adding a block, move it 1 block over in the direction
+        // of where the ray intersected the cube
+        this.selectedCoords.add(intersection.normal);
+      }
 
       this.selectionHelper.position.copy(this.selectedCoords);
       this.selectionHelper.visible = true;
@@ -133,6 +145,18 @@ export class Player {
 
   onKeyDown(event) {
     this.keyState[event.code] = true;
+
+    switch (event.code) {
+      case 'Digit0':
+      case 'Digit1':
+      case 'Digit2':
+      case 'Digit3':
+      case 'Digit4':
+      case 'Digit5':
+        this.activeBlockId = Number(event.key);
+        console.log(`activeBlockId = ${event.key}`);
+        break;
+    }
   }
 
   onKeyUp(event) {

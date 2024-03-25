@@ -6,6 +6,7 @@ import { World } from './world.js';
 import { createUI } from './ui.js';
 import { Player } from './player.js';
 import { Physics } from './physics.js';
+import { blocks } from './blocks';
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
@@ -64,10 +65,17 @@ function setupLights() {
   scene.add(ambient);
 }
 
+/**
+ * Event handler for 'mousedown' event
+ * @param {MouseEvent} event
+ */
 function onMouseDown(event) {
   if (player.controls.isLocked && player.selectedCoords) {
-    const { x, y, z } = player.selectedCoords;
-    world.removeBlock(x, y, z);
+    if (player.activeBlockId !== blocks.empty.id) {
+      world.addBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z, player.activeBlockId);
+    } else {
+      world.removeBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z);
+    }
   }
 }
 document.addEventListener('mousedown', onMouseDown);
@@ -80,7 +88,7 @@ function animate() {
   const dt = (currentTime - previousTime) / 1000;
 
   if (player.controls.isLocked) {
-    player.updateRaycaster(world);
+    player.updatePlayer(world);
     physics.update(dt, player, world);
     world.update(player);
 
