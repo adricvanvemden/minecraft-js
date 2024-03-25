@@ -30,6 +30,7 @@ controls.update();
 
 // Scene setup
 const scene = new THREE.Scene();
+
 scene.fog = new THREE.Fog(0x80a0e0, 50, 100);
 const world = new World();
 world.generate();
@@ -63,6 +64,14 @@ function setupLights() {
   scene.add(ambient);
 }
 
+function onMouseDown(event) {
+  if (player.controls.isLocked && player.selectedCoords) {
+    const { x, y, z } = player.selectedCoords;
+    world.removeBlock(x, y, z);
+  }
+}
+document.addEventListener('mousedown', onMouseDown);
+
 // Render loop
 let previousTime = performance.now();
 function animate() {
@@ -71,6 +80,7 @@ function animate() {
   const dt = (currentTime - previousTime) / 1000;
 
   if (player.controls.isLocked) {
+    player.updateRaycaster(world);
     physics.update(dt, player, world);
     world.update(player);
 

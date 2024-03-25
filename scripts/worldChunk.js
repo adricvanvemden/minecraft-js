@@ -124,7 +124,7 @@ export class WorldChunk extends THREE.Group {
       .filter((blockType) => blockType.id !== blocks.empty.id)
       .forEach((blockType) => {
         const mesh = new THREE.InstancedMesh(geometry, blockType.material, maxCount);
-        mesh.name = blockType.name;
+        mesh.name = blockType.id;
         mesh.count = 0;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -168,6 +168,62 @@ export class WorldChunk extends THREE.Group {
       return null;
     }
   }
+
+  /**
+   * Removes the block at the given coordinates
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  removeBlock(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    if (block && block.id !== blocks.empty.id) {
+      this.deleteBlockInstance(x, y, z);
+    }
+  }
+
+  /**
+   * Removes the mesh instance associated with the 'block' by swapping it
+   * with the last instance and decrementing the count
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  deleteBlockInstance(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    if (block.instanceId === null) return;
+
+    const mesh = this.children.find((InstanceMesh) => InstanceMesh.name === block.id);
+    const instanceId = block.instanceId;
+
+    // Get the matrix of the last instance
+    const lastMatrix = new THREE.Matrix4();
+    mesh.getMatrixAt(mesh.count - 1, lastMatrix);
+
+    // Update the block instance id of the last instance
+    const v = new THREE.Vector3();
+    v.applyMatrix4(lastMatrix);
+    this.setBlockInstanceId(v.x, v.y, v.z, instanceId);
+
+    // Swap the last instance with the instance to be deleted
+    mesh.setMatrixAt(instanceId, lastMatrix);
+
+    // Clear the last instance
+    mesh.count--;
+
+    // Mark the instance matrix as needing update
+    // and update the bounding sphere for raycasting
+    mesh.instanceMatrix.needsUpdate = true
+    mesh.computeBoundingSphere();
+
+    // Clear the block data
+    this.setBlockInstanceId(x, y, z, null);
+    this.setBlockId(x, y, z, blocks.empty.id);
+
+  }
+
 
   /**
    * Sets the block id for the block at (x, y, z)
