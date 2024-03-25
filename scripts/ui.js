@@ -26,6 +26,10 @@ export function createUI(scene, world, player, physics) {
   terrainFolder.add(world.params.terrain, 'magnitude', 0, 1).name('Magnitude');
   terrainFolder.add(world.params.terrain, 'offset', 0, 1).name('Offset');
 
+  const cloudFolder = gui.addFolder('clouds');
+  cloudFolder.add(world.params.clouds, 'density', 0, 1, 0.1).name('Density');
+  cloudFolder.add(world.params.clouds, 'scale', 0, 100).name('Scale');
+
   const treesFolder = gui.addFolder('Trees');
   treesFolder.add(world.params.trees, 'frequency', 0, 0.1).name('Frequency');
   treesFolder.add(world.params.trees.trunk.height, 'min', 0, 10, 1).name('Min Trunk Height');

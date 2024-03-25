@@ -33,6 +33,10 @@ export class World extends THREE.Group {
       },
       frequency: 0.05, // between 0 and 1
     },
+    clouds: {
+      density: 0.3,
+      scale: 30,
+    },
   };
 
   dataStore = new DataStore();

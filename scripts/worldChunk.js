@@ -28,6 +28,7 @@ export class WorldChunk extends THREE.Group {
     this.generateResources(rng);
     this.generateTerrain(rng);
     this.generateTrees(rng);
+    this.generateClouds(rng);
     this.loadPlayerChanges();
     this.generateMeshes();
     this.loaded = true;
@@ -184,6 +185,25 @@ export class WorldChunk extends THREE.Group {
       }
     }
   }
+
+    /**
+   * Creates happy little clouds
+   * @param {RNG} rng 
+   */
+    generateClouds(rng) {
+        const simplex = new SimplexNoise(rng);
+        for (let x = 0; x < this.size.width; x++) {
+          for (let z = 0; z < this.size.width; z++) {
+            const value = simplex.noise(
+              (this.position.x + x) / this.params.clouds.scale,
+              (this.position.z + z) / this.params.clouds.scale) * 0.5 + 0.5;
+    
+            if (value < this.params.clouds.density) {
+              this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
+            }
+          }
+        }
+      }
 
   /**
    * Generates the 3D representation of the world
