@@ -45,9 +45,48 @@ export class World extends THREE.Group {
   constructor(seed = 0) {
     super();
     this.seed = seed;
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.code) {
+        case 'F9':
+          this.save();
+          break;
+        case 'F10':
+          this.load();
+          break;
+      }
+    });
   }
 
-  generate() {
+  /**
+   * Saves the world data to local storage
+   */
+  save() {
+    localStorage.setItem('minecraft_params', JSON.stringify(this.params));
+    localStorage.setItem('minecraft_data', JSON.stringify(this.dataStore.data));
+    document.getElementById('status').innerHTML = 'Game saved successfully';
+    setTimeout(() => {
+      document.getElementById('status').innerHTML = '';
+    }, 3000);
+  }
+
+  /**
+   * Loads the game from disk
+   */
+  load() {
+    this.params = JSON.parse(localStorage.getItem('minecraft_params'));
+    this.dataStore.data = JSON.parse(localStorage.getItem('minecraft_data'));
+    document.getElementById('status').innerHTML = 'Game loaded successfully';
+    setTimeout(() => {
+      document.getElementById('status').innerHTML = '';
+    }, 3000);
+    this.generate();
+  }
+
+  generate(clearCache = false) {
+    if (clearCache) {
+      this.dataStore.clear();
+    }
     this.disposeChunks();
     for (let x = -this.drawDistance; x < this.drawDistance; x++) {
       for (let z = -this.drawDistance; z < this.drawDistance; z++) {

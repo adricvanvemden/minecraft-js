@@ -53,6 +53,6 @@ export function createUI(scene, world, player, physics) {
     scaleFolder.add(resource.scale, 'z', 10, 100).name('Z Scale');
   });
 
-  gui.onChange(() => world.generate());
+  gui.onChange(() => world.generate(true));
   // gui.add(world, 'generate');
 }
