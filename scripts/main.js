@@ -7,6 +7,7 @@ import { createUI } from './ui.js';
 import { Player } from './player.js';
 import { Physics } from './physics.js';
 import { blocks } from './blocks';
+import { ModelLoader } from './modelLoader.js';
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
@@ -39,6 +40,10 @@ world.generate();
 scene.add(world);
 
 const player = new Player(scene);
+const modelLoader = new ModelLoader();
+modelLoader.loadModels((models) => {
+  player.tool.setMesh(models.pickaxe);
+});
 
 const physics = new Physics(scene);
 
@@ -76,6 +81,7 @@ function onMouseDown(event) {
       world.addBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z, player.activeBlockId);
     } else {
       world.removeBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z);
+      player.tool.startAnimation();
     }
   }
 }

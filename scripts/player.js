@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { blocks } from './blocks';
+import { Tool } from './tool';
 
 const CENTER_SCREEN = new THREE.Vector2();
 export class Player {
@@ -20,14 +21,18 @@ export class Player {
 
   raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 3);
   selectedCoords = null;
-  activeBlockid = blocks.empty.id;
+  activeBlockId = blocks.empty.id;
+
+  tool = new Tool();
 
   constructor(scene) {
     this.keyState = {};
     this.position.set(32, 32, 32);
     this.cameraHelper.visible = false;
     scene.add(this.camera);
-    scene.add(this.cameraHelper);
+    // scene.add(this.cameraHelper);
+
+    this.camera.add(this.tool);
 
     // Set raycaster to use layer 0 so it doesn't interact with water mesh on layer 1
     this.raycaster.layers.set(0);
@@ -38,7 +43,7 @@ export class Player {
       new THREE.CylinderGeometry(this.radius, this.radius, this.height, 32),
       new THREE.MeshBasicMaterial({ wireframe: true })
     );
-    scene.add(this.boundsHelper);
+    // scene.add(this.boundsHelper);
 
     // Add event listeners for keyboard/mouse events
     document.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -100,6 +105,7 @@ export class Player {
   updatePlayer(world) {
     this.updateBoundsHelper();
     this.updateRaycaster(world);
+    this.tool.update();
   }
 
   /**
@@ -160,9 +166,11 @@ export class Player {
       case 'Digit6':
       case 'Digit7':
       case 'Digit8':
-      case 'Digit9':
+        console.log(this.activeBlockId);
+        document.getElementById(`toolbar-${this.activeBlockId}`).classList.remove('selected');
         this.activeBlockId = Number(event.key);
-        console.log(`activeBlockId = ${event.key}`);
+        document.getElementById(`toolbar-${this.activeBlockId}`).classList.add('selected');
+        this.tool.visible = this.activeBlockId === blocks.empty.id;
         break;
     }
   }

@@ -103,11 +103,10 @@ export class WorldChunk extends THREE.Group {
           // Determine the block type based on the height
           if (y <= this.params.terrain.waterHeight && y <= height) {
             this.setBlockId(x, y, z, blocks.sand.id);
-        } else if (y === height) {
+          } else if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
-          }else if (y < height && this.getBlock(x, y, z).id === blocks.empty.id) {
+          } else if (y < height && this.getBlock(x, y, z).id === blocks.empty.id) {
             this.setBlockId(x, y, z, blocks.dirt.id);
-
           } else if (y > height) {
             this.setBlockId(x, y, z, blocks.empty.id);
           }
@@ -271,7 +270,7 @@ export class WorldChunk extends THREE.Group {
     waterMesh.position.set(this.size.width / 2, this.params.terrain.waterHeight + 0.4, this.size.width / 2);
     waterMesh.scale.set(this.size.width, this.size.width, 1);
     waterMesh.layers.set(1);
-    
+
     this.add(waterMesh);
   }
 
