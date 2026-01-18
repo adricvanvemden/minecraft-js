@@ -3,6 +3,7 @@
 */
 export default {
     build: {
-      sourcemap: true
+      sourcemap: true,
+      base: "/minecraft-js/"
     }
   }
