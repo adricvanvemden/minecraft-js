@@ -3,7 +3,7 @@ import * as THREE from 'three';
 const textureLoader = new THREE.TextureLoader();
 
 function loadTexture(url) {
-    const texture =  textureLoader.load(url);
+    const texture = textureLoader.load(`/minecraft-js/${url}`);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.NearestFilter;
     texture.magFilter = THREE.NearestFilter;
