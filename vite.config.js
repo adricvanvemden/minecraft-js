@@ -1,9 +1,5 @@
-/**
-* @type {import('vite').UserConfig}
-*/
-export default {
-    build: {
-      sourcemap: true,
-      base: "/minecraft-js/"
-    }
-  }
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  base: "/minecraft-js/",
+});
